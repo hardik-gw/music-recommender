@@ -1,34 +1,49 @@
- Music Recommendation System (Content-Based)
+🎧 Music Recommendation System (Content-Based)
 
+A production-style content-based music recommender system that suggests similar songs using audio features, while explicitly handling real-world challenges such as dataset bias, song name ambiguity, covers/remixes, and API limitations.
 
-A production-style content-based music recommender system that suggests similar songs based on audio features, while handling real-world issues such as dataset bias, song name ambiguity, covers/remixes, and API limitations.
-This project focuses on engineering realism over model complexity.
- Overview
-Music recommendation systems aim to personalize listening experiences by suggesting tracks that align with a user’s taste.
+This project prioritizes engineering realism over model complexity.
+Overview
 
-This project implements a content-based recommender using precomputed Spotify audio features, combined with live song discovery via the Last.fm API.
-Unlike simple notebook demos, this system is designed with:
+Music recommendation systems aim to personalize listening experiences by suggesting tracks aligned with a user’s taste.
 
-offline feature storage
-runtime inference only (no retraining)
-robust input handling
-realistic filtering logic
+This project implements a content-based recommender using:
 
+Precomputed Spotify audio features (offline)
+
+Live song discovery and metadata resolution via the Last.fm API
+
+Unlike notebook-only demos, this system is designed with:
+
+Offline feature storage
+
+Runtime inference only (no retraining)
+
+Robust input normalization
+
+Explicit candidate filtering for better recommendation quality
 
  Key Features
+
 Content-based recommendations using cosine similarity
+
 Offline feature scaling and artifact storage
-Live song resolution using Last.fm API
+
+Live song resolution via Last.fm API
+
 Robust handling of:
-song name ambiguity (e.g., “Change”, “Home”)
-covers / remixes / live versions
-wrong or inconsistent artist metadata
-Era-aware and popularity-aware recommendation filtering
+
+Song name ambiguity (e.g., “Change”, “Home”)
+
+Covers, remixes, and live versions
+
+Inconsistent or incorrect artist metadata
+
+Era-aware and popularity-aware candidate filtering
+
 CLI-based interactive interface
 
-
-System Architecture
-
+ System Architecture
 User Input (Song Name)
         ↓
 Last.fm API
@@ -37,132 +52,184 @@ Last.fm API
 Anchor Song Resolution
 (Normalization + Fallbacks)
         ↓
-Offline Feature Store (Spotify audio features)
+Offline Feature Store
+(Spotify Audio Features)
         ↓
 Candidate Filtering
-(era + popularity + bias)
+(Era + Popularity + Bias)
         ↓
 Cosine Similarity Ranking
-        ↓Top-N Recommendations
+        ↓
+Top-N Recommendations
 
 
-Project Structure
+ Dataset
 
-spotify-recommender/
-│
-├── data/
-│   └── data.csv              # Spotify audio feature dataset
-│
-├── model/
-│   ├── train.py              # Offline training script
-│   └── artifacts.pkl         # Saved feature matrix
-│
-├── app/
-│   ├── lastfm_api.py         # Live song discovery (Last.fm)
-│   └── recommender.py        # Recommendation logic
-│
-├── main.py                   # CLI entry point
-├── requirements.txt
-└── README.md
+Source: Spotify Audio Features Dataset (Kaggle)
 
-
-Dataset
-Source: Spotify audio feature dataset (Kaggle)
 Granularity: One row per track
+
 Key features used:
+
 danceability
+
 energy
+
 loudness
+
 speechiness
+
 acousticness
+
 instrumentalness
+
 liveness
+
 valence
+
 tempo
+
 popularity
+
 duration_ms
+
 explicit
-All audio features are precomputed and stored locally, mimicking how real systems use feature stores.
 
+All audio features are precomputed and stored locally, mirroring how real-world systems rely on internal feature stores.
 
-How It Works
+⚙️ How It Works
 1️⃣ Offline Training (One-Time)
+
 Load dataset
+
 Select numerical audio features
+
 Normalize features
-Save scaled feature matrix to disk
+
+Serialize scaled feature matrix
 
 python model/train.py
+
 2️⃣ Live Song Discovery
+
 User enters a song name
+
 Last.fm API resolves:
-canonical song title
-artist name
-optional genre / mood tags
-Spotify API was intentionally not used for audio features due to endpoint restrictions for new apps.
+
+Canonical song title
+
+Artist name
+
+Optional genre / mood tags
+
+Spotify API is intentionally not used for live audio features due to endpoint restrictions for new developer apps.
+
 3️⃣ Anchor Resolution (Critical Step)
+
 To avoid incorrect recommendations, the system:
 
-normalizes song titles (removes “cover”, “remix”, etc.)
-prioritizes song + artist matches
-falls back to modern, popular matches
-avoids anchoring to archival or ambiguous tracks
+Normalizes song titles (removes “cover”, “remix”, etc.)
+
+Prioritizes exact song + artist matches
+
+Falls back to modern, popular matches when ambiguous
+
+Avoids anchoring to archival or incorrect tracks
+
 4️⃣ Recommendation
-Candidate pool is filtered before similarity
-similar era (± 5 years)
-minimum popularity threshold
+
+Candidate pool is filtered before similarity computation:
+
+Similar era (± 5 years)
+
+Minimum popularity threshold
+
 Cosine similarity is computed within the filtered pool
+
 Top-N recommendations are returned
 
-
-Running the Project
+ Running the Project
 Install dependencies
-
 pip install -r requirements.txt
+
 Train the model
-
 python model/train.py
-Start the recommender
 
+Start the recommender
 python main.py
 
 
+Example session:
 
+Enter a song: Change j cole
 
-Why Last.fm Instead of Spotify API?
-Spotify has restricted access to the audio-features endpoint for many new developer apps.
+Because you liked Change by J. Cole:
+Tags: rap, hip-hop, 2016
 
-To ensure reliability and realism:
+Recommendations:
+- Kendrick Lamar – ...
+- J. Cole – ...
+- Travis Scott – ...
+
+ Why Last.fm Instead of Spotify API?
+
+Spotify restricts access to the audio-features endpoint for many new developer applications.
+
+To ensure reliability:
+
 Spotify audio features are used offline via dataset
-Last.fm API is used for live song discovery and metadata
-Recommendation logic is fully independent of external APIs
-This mirrors industry practice, where features are computed offline and served from internal stores.
 
+Last.fm API is used for live song discovery and metadata
+
+Recommendation logic remains independent of external APIs
+
+This mirrors industry practice, where features are computed offline and served from internal systems.
 
  Design Decisions
+
 ✔ Offline feature store instead of live feature extraction
+
 ✔ Explicit candidate filtering before similarity
-✔ Robust normalization for real-world inputs
-✔ Focus on recommendation quality, not flashy models
- No collaborative filtering (no user history available)
+
+✔ Robust normalization for real-world user inputs
+
+✔ Focus on recommendation quality over complex models
+
+❌ No collaborative filtering (no user history available)
+
 ⚠️ Limitations
+
 Recommendations limited to tracks present in the dataset
+
 No user-specific personalization
+
 Genre inference relies on heuristic signals
+
 🚧 Future Improvements
+
 Genre-aware weighting using tags
+
 Playlist-based recommendations
+
 Artist-centric similarity mode
+
 Web interface using Streamlit or FastAPI
 
+Hybrid recommender (content + collaborative)
 
-Tech Stack
+🛠️ Tech Stack
+
 Python
+
 Pandas, NumPy
+
 Scikit-learn
+
 SciPy
+
 Last.fm API (pylast)
 
 
-Final note
-This project prioritizes engineering realism and system design over model complexity — reflecting how real recommendation systems are built and deployed.
+📌 Final Note
+
+This project emphasizes system design, robustness, and realistic constraints over model complexity — reflecting how real-world recommendation systems are engineered and deployed.
